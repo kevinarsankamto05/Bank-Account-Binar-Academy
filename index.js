@@ -7,7 +7,7 @@ const bankAccount = require("./src/routers/bankAccount");
 const transaction = require("./src/routers/transaction");
 
 const swaggerUi = require("swagger-ui-express");
-const swaggerJson = require("./openApi.json");
+const swaggerJson = require("./documentationApi.json");
 
 app.use(express.json({ strict: false }));
 app.use("/documentation", swaggerUi.serve, swaggerUi.setup(swaggerJson));
