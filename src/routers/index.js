@@ -1,23 +1,10 @@
-const express = require("express");
-const {
-  registerUser,
-  loginUser,
-  getprofile,
-  // getUsers,
-  // getUserById,
-  updateUser,
-  deleteUser,
-} = require("../controllers/userControllers");
-const checkToken = require("../../middleware/checkToken");
+const express = require("express"),
+  router = express.Router(),
+  authRouter = require("./auth"),
+  accountRoute = require("./bankAccount"),
+  transactionRoute = require("./transaction");
 
-const router = express.Router();
-
-router.post("/auth/register", registerUser);
-router.post("/auth/login", loginUser);
-router.get("/auth/authenticate", checkToken, getprofile);
-// router.get("/users", getUsers);
-// router.get("/users/:id", getUserById);
-router.put("/users/:id", updateUser);
-router.delete("/users/:id", deleteUser);
-
+router.use("/auth", authRouter);
+router.use("/accounts", accountRoute);
+router.use("/transactions", transactionRoute);
 module.exports = router;

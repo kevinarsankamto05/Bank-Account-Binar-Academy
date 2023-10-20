@@ -10,10 +10,10 @@ const {
 const router = express.Router();
 
 // ACCOUNT Routes
-router.post("/accounts", createAccount);
-router.get("/accounts", getAccounts);
-router.get("/accounts/:id", getAccountById);
-router.put("/accounts/:id", updateAccount);
-router.delete("/accounts/:id", deleteAccount);
+router.post("/create", createAccount);
+router.get("/read", getAccounts);
+router.get("/read/:id", getAccountById);
+router.put("/update/:id", updateAccount);
+router.delete("/delete/:id", deleteAccount);
 
 module.exports = router;

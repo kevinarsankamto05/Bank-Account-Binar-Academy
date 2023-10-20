@@ -1,4 +1,6 @@
 const jwt = require("jsonwebtoken");
+require("dotenv").config();
+const secret_key = process.env.JWT_KEY || "no_secret";
 
 const checkToken = (req, res, next) => {
   let token = req.headers.authorization;
@@ -15,7 +17,7 @@ const checkToken = (req, res, next) => {
     token = token.slice("bearer".length).trim();
   }
 
-  const jwtPayLoad = jwt.verify(token, "secret_key");
+  const jwtPayLoad = jwt.verify(token, secret_key);
 
   if (!jwtPayLoad) {
     return res.status(403).json({
@@ -27,11 +29,6 @@ const checkToken = (req, res, next) => {
   res.user = jwtPayLoad;
 
   next();
-
-  //   return res.status(200).json({
-  //     error: false,
-  //       message: "Token is valid",
-  //   })
 };
 
 module.exports = checkToken;

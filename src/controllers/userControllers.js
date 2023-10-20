@@ -1,56 +1,15 @@
-const { PrismaClient } = require("@prisma/client");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-
-const prisma = new PrismaClient();
+const { users, profiles } = require("../models"),
+  utils = require("../utils"),
+  jwt = require("jsonwebtoken"),
+  bcrypt = require("bcrypt");
+require("dotenv").config();
+const secret_key = process.env.JWT_KEY || "no_secret";
 
 const registerUser = async (req, res) => {
   const { name, email, password, identity_number, identity_type, address } =
     req.body;
 
-  if (!name)
-    return res.status(400).json({ error: true, message: "name is required" });
-
-  function isValidEmail(email) {
-    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-    return emailRegex.test(email);
-  }
-
-  if (!email) {
-    return res.status(400).json({ error: true, message: "Email is required" });
-  } else if (!isValidEmail(email)) {
-    return res
-      .status(400)
-      .json({ error: true, message: "Invalid email format" });
-  }
-
-  if (!password) {
-    return res
-      .status(400)
-      .json({ error: true, message: "Password is required" });
-  } else if (password.length < 8) {
-    return res.status(400).json({
-      error: true,
-      message: "Password must be at least 8 characters long",
-    });
-  }
-
-  if (!identity_number)
-    return res
-      .status(400)
-      .json({ error: true, message: "identity_number is required" });
-
-  if (!identity_type)
-    return res
-      .status(400)
-      .json({ error: true, message: "identity_type is required" });
-
-  if (!address)
-    return res
-      .status(400)
-      .json({ error: true, message: "address is required" });
-
-  const existingEmail = await prisma.users.findFirst({
+  const existingEmail = await users.findFirst({
     where: {
       email: email,
     },
@@ -61,15 +20,12 @@ const registerUser = async (req, res) => {
       .status(400)
       .json({ error: true, message: "Email already registered" });
 
-  const salt = await bcrypt.genSalt();
-  const hashPassword = await bcrypt.hash(password, salt);
-
   try {
-    const user = await prisma.users.create({
+    const user = await users.create({
       data: {
         name: name,
         email: email,
-        password: hashPassword,
+        password: await utils.crypPassword(password),
         profile: {
           create: {
             identity_number: identity_number,
@@ -99,7 +55,7 @@ const registerUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
   try {
-    const findUser = await prisma.users.findFirst({
+    const findUser = await users.findFirst({
       where: {
         email: req.body.email,
       },
@@ -108,12 +64,12 @@ const loginUser = async (req, res) => {
     if (!findUser) {
       return res.status(404).json({
         error: true,
-        message: "User not exists",
+        message: "Your email is not registred in our system",
       });
     }
 
     if (bcrypt.compareSync(req.body.password, findUser.password)) {
-      const token = jwt.sign({ id: findUser.id }, "secret_key", {
+      const token = jwt.sign({ id: findUser.id }, secret_key, {
         expiresIn: "6h",
       });
       return res.status(200).json({
@@ -133,60 +89,121 @@ const loginUser = async (req, res) => {
 };
 
 const getprofile = async (req, res) => {
-  const user = await prisma.users.findUnique({
+  try {
+    const user = await users.findUnique({
+      where: {
+        id: res.user.id,
+      },
+      include: {
+        profile: true,
+        bank_accounts: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: true, message: "User not found" });
+    }
+
+    const response = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      profile: {
+        identity_type: user.profile.identity_type,
+        identity_number: user.profile.identity_number,
+        address: user.profile.address,
+      },
+      bank_accounts: user.bank_accounts.map((account) => ({
+        bank_name: account.bank_name,
+        bank_account_number: account.bank_account_number,
+        balance: parseInt(account.balance),
+      })),
+    };
+
+    return res.status(200).json({
+      error: false,
+      message: "Prifile fetched successfully",
+      data: response,
+    });
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    return res
+      .status(500)
+      .json({ error: true, message: "Internal Server Error" });
+  }
+};
+
+const changePassword = async (req, res) => {
+  const user = await users.findUnique({
     where: {
       id: res.user.id,
     },
   });
 
-  return res.status(200).json({
-    data: user,
+  if (bcrypt.compareSync(req.body.old_password, user.password)) {
+    const data = await users.update({
+      where: {
+        id: res.user.id,
+      },
+      data: {
+        password: await utils.crypPassword(req.body.password),
+      },
+    });
+    return res.status(200).json({
+      error: false,
+      message: "Your password has been successfully updated",
+      data: user,
+    });
+  }
+  return res.status(403).json({
+    error: true,
+    message: "Your old password is not valid",
   });
 };
 
-// const getUsers = async (req, res) => {
-//   try {
-//     const users = await prisma.users.findMany({
-//       include: {
-//         profile: true,
-//         bank_accounts: true,
-//       },
-//     });
+const getUsers = async (req, res) => {
+  try {
+    const users = await prisma.users.findMany({
+      include: {
+        profile: true,
+        bank_accounts: true,
+      },
+    });
 
-//     if (!users)
-//       return res.status(404).json({
-//         error: true,
-//         message: "User Not Found",
-//       });
+    if (!users)
+      return res.status(404).json({
+        error: true,
+        message: "User Not Found",
+      });
 
-//     const response = users.map((user) => ({
-//       id: user.id,
-//       name: user.name,
-//       email: user.email,
-//       profiles: {
-//         identity_type: user.profile.identity_type,
-//         identity_number: user.profile.identity_number,
-//         address: user.profile.address,
-//       },
-//       bank_accounts: user.bank_accounts.map((account) => ({
-//         bank_name: account.bank_name,
-//         bank_account_number: account.bank_account_number,
-//         balance: parseInt(account.balance),
-//       })),
-//     }));
+    const response = users.map((user) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      profiles: {
+        identity_type: user.profile.identity_type,
+        identity_number: user.profile.identity_number,
+        address: user.profile.address,
+      },
+      bank_accounts: user.bank_accounts.map((account) => ({
+        bank_name: account.bank_name,
+        bank_account_number: account.bank_account_number,
+        balance: parseInt(account.balance),
+      })),
+    }));
 
-//     return res.status(200).json({
-//       error: false,
-//       message: "Successfully fetched data all user",
-//       data: response,
-//     });
-//   } catch (error) {
-//     console.error("Error fetching users:", error);
-//     return res
-//       .status(500)
-//       .json({ error: true, message: "Internal Server Error" });
-//   }
-// };
+    return res.status(200).json({
+      error: false,
+      message: "Successfully fetched data all user",
+      data: response,
+    });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return res
+      .status(500)
+      .json({ error: true, message: "Internal Server Error" });
+  }
+};
 
 // const getUserById = async (req, res) => {
 //   const userId = parseInt(req.params.id);
@@ -311,7 +328,9 @@ module.exports = {
   registerUser,
   loginUser,
   getprofile,
-  // getUsers,
+  changePassword,
+
+  getUsers,
   // getUserById,
   updateUser,
   deleteUser,
