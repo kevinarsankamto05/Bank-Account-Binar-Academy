@@ -16,7 +16,7 @@ identity_type String
 identity_number String
 address String
 user_id Int @unique
-user users @relation(fields: [user_id], references: [id])
+user users @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 model users {

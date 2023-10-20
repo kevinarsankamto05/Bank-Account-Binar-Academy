@@ -26,9 +26,9 @@ router.post(
   changePassword
 );
 
-router.get("/users", getUsers);
+router.get("/read-all", getUsers);
 // router.get("/users/:id", getUserById);
 router.put("/users/:id", updateUser);
-router.delete("/users/:id", deleteUser);
+router.delete("/delete/:id", deleteUser);
 
 module.exports = router;

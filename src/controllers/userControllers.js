@@ -1,4 +1,4 @@
-const { users, profiles } = require("../models"),
+const { users, profiles, bank_accounts } = require("../models"),
   utils = require("../utils"),
   jwt = require("jsonwebtoken"),
   bcrypt = require("bcrypt");
@@ -163,20 +163,20 @@ const changePassword = async (req, res) => {
 
 const getUsers = async (req, res) => {
   try {
-    const users = await prisma.users.findMany({
+    const user = await users.findMany({
       include: {
         profile: true,
         bank_accounts: true,
       },
     });
 
-    if (!users)
+    if (!user)
       return res.status(404).json({
         error: true,
         message: "User Not Found",
       });
 
-    const response = users.map((user) => ({
+    const response = user.map((user) => ({
       id: user.id,
       name: user.name,
       email: user.email,
@@ -296,28 +296,33 @@ const updateUser = async (req, res) => {
   }
 };
 
+// ... (other controller functions)
+
 const deleteUser = async (req, res) => {
-  const userId = parseInt(req.params.id);
+  const profileId = parseInt(req.params.id);
 
   try {
-    const user = await prisma.users.findUnique({
-      where: { id: userId },
+    const existingProfile = await users.findUnique({
+      where: { id: profileId },
     });
 
-    if (!user) {
-      return res.status(404).json({ error: true, message: "User not found" });
+    if (!existingProfile) {
+      return res
+        .status(404)
+        .json({ error: true, message: "Profile not found" });
     }
 
-    await prisma.users.delete({
-      where: { id: userId },
+    // Delete the profile
+    await users.delete({
+      where: { id: profileId },
     });
 
     return res.status(200).json({
       error: false,
-      message: "User deleted successfully",
+      message: "Profile deleted successfully",
     });
   } catch (error) {
-    console.error("Error deleting user:", error);
+    console.error("Error deleting profile:", error);
     return res
       .status(500)
       .json({ error: true, message: "Internal Server Error" });
