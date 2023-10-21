@@ -1,6 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
-
-const prisma = new PrismaClient();
+const { users, bank_accounts } = require("../models");
 
 const createAccount = async (req, res) => {
   let { bank_name, bank_account_number, balance, user_id } = req.body;
@@ -8,7 +6,7 @@ const createAccount = async (req, res) => {
   user_id = parseInt(user_id);
 
   try {
-    const existingUser = await prisma.users.findUnique({
+    const existingUser = await users.findUnique({
       where: { id: user_id },
     });
 
@@ -21,7 +19,7 @@ const createAccount = async (req, res) => {
         .status(400)
         .json({ error: true, message: "Minimum Balance is 50000" });
 
-    const response = await prisma.bank_accounts.create({
+    const response = await bank_accounts.create({
       data: {
         bank_name: bank_name,
         bank_account_number: bank_account_number,
@@ -52,7 +50,7 @@ const createAccount = async (req, res) => {
 
 const getAccounts = async (req, res) => {
   try {
-    const accounts = await prisma.bank_accounts.findMany({
+    const accounts = await bank_accounts.findMany({
       include: {
         user: true,
       },
@@ -91,7 +89,7 @@ const getAccountById = async (req, res) => {
   const accountId = parseInt(req.params.id);
 
   try {
-    const account = await prisma.bank_accounts.findUnique({
+    const account = await bank_accounts.findUnique({
       where: {
         id: accountId,
       },
@@ -131,7 +129,7 @@ const updateAccount = async (req, res) => {
   const accountId = parseInt(req.params.id);
   const { bank_name, bank_account_number, balance, user_id } = req.body;
   try {
-    const existingAccount = await prisma.bank_accounts.findUnique({
+    const existingAccount = await bank_accounts.findUnique({
       where: { id: accountId },
     });
 
@@ -141,7 +139,7 @@ const updateAccount = async (req, res) => {
         .json({ error: true, message: "Account not found" });
     }
 
-    const updatedAccount = await prisma.bank_accounts.update({
+    const updatedAccount = await bank_accounts.update({
       where: { id: accountId },
       data: {
         bank_name: bank_name || existingAccount.bank_name,
@@ -171,7 +169,7 @@ const deleteAccount = async (req, res) => {
   const accountId = parseInt(req.params.id);
 
   try {
-    await prisma.bank_accounts.delete({
+    await bank_accounts.delete({
       where: { id: accountId },
     });
 

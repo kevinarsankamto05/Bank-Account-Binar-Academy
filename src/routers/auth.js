@@ -4,12 +4,7 @@ const {
   loginUser,
   getprofile,
   changePassword,
-
-  getUsers,
-  // getUserById,
-  updateUser,
-  deleteUser,
-} = require("../controllers/userControllers");
+} = require("../controllers/authControllers");
 const checkToken = require("../middleware/checkToken");
 const validate = require("../middleware/validate");
 const schema = require("../../validatorSchema/authValidator");
@@ -25,10 +20,5 @@ router.post(
   validate(schema.changePasswordValidator),
   changePassword
 );
-
-router.get("/read-all", getUsers);
-// router.get("/users/:id", getUserById);
-router.put("/users/:id", updateUser);
-router.delete("/delete/:id", deleteUser);
 
 module.exports = router;

@@ -11,14 +11,14 @@
   ],
   "tags": [
     {
-      "name": "User",
-      "description": "API operations related to users."
+      "name": "Auth",
+      "description": "API documentation"
     }
   ],
   "paths": {
-    "/api/v1/users": {
+    "/api/v1/auth/register": {
       "post": {
-        "tags": ["User"],
+        "tags": ["Auth"],
         "summary": "Create a new user",
         "requestBody": {
           "description": "User data",
@@ -59,6 +59,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Users created successfully"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
@@ -82,7 +90,181 @@
             }
           }
         }
-      },
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login to get Token",
+        "requestBody": {
+          "description": "Login to get Token",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Login and get token successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "token": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/authenticate": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Read data by logging in a user using a token",
+        "parameters": [
+          {
+            "name": "Token",
+            "in": "path",
+            "description": "User token login to system login",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Read data with user login using token successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Read data with user login using token successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/change-password": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Change Password based on user login",
+        "parameters": [
+          {
+            "name": "Token",
+            "in": "path",
+            "description": "Change Password based on user login",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Change Password based on user login",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "old_password": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Change Password based on user login successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "password": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/all-users": {
       "get": {
         "tags": ["User"],
         "summary": "Get all users",
@@ -92,9 +274,19 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/User"
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User data retrieved successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
                   }
                 }
               }
@@ -103,7 +295,7 @@
         }
       }
     },
-    "/api/v1/users/{id}": {
+    "/api/v1/users/users-by-id/{id}": {
       "get": {
         "tags": ["User"],
         "summary": "Get user by ID",
@@ -124,13 +316,28 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User data retrieved successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
                 }
               }
             }
           }
         }
-      },
+      }
+    },
+    "/api/v1/users/update-users/{id}": {
       "put": {
         "tags": ["User"],
         "summary": "Update user by ID",
@@ -184,6 +391,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User updated successfully"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
@@ -207,7 +422,9 @@
             }
           }
         }
-      },
+      }
+    },
+    "/api/v1/users/delete-users/{id}": {
       "delete": {
         "tags": ["User"],
         "summary": "Delete user by ID",
@@ -246,7 +463,7 @@
       }
     },
 
-    "/api/v1/account": {
+    "/api/v1/account/create-account": {
       "post": {
         "tags": ["Bank Account"],
         "summary": "Create a new account",
@@ -286,6 +503,14 @@
                     "data": {
                       "type": "object",
                       "properties": {
+                        "error": {
+                          "type": "string",
+                          "example": false
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Create account successfully"
+                        },
                         "id": {
                           "type": "integer"
                         },
@@ -309,7 +534,9 @@
             }
           }
         }
-      },
+      }
+    },
+    "/api/v1/account/all-account": {
       "get": {
         "tags": ["Bank Account"],
         "summary": "Get all account",
@@ -330,7 +557,7 @@
         }
       }
     },
-    "/api/v1//account/{id}": {
+    "/api/v1/account/account-by-id/{id}": {
       "get": {
         "tags": ["Bank Account"],
         "summary": "Get account by ID",
@@ -351,13 +578,28 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Account"
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Bank account fethed successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Account"
+                    }
+                  }
                 }
               }
             }
           }
         }
-      },
+      }
+    },
+    "/api/v1/account/update-account/{id}": {
       "put": {
         "tags": ["Bank Account"],
         "summary": "Update account by ID",
@@ -408,6 +650,14 @@
                     "data": {
                       "type": "object",
                       "properties": {
+                        "error": {
+                          "type": "string",
+                          "example": false
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Account updatetd successfully"
+                        },
                         "id": {
                           "type": "string"
                         },
@@ -428,7 +678,9 @@
             }
           }
         }
-      },
+      }
+    },
+    "/api/v1/account/delete-account/{id}": {
       "delete": {
         "tags": ["Bank Account"],
         "summary": "Delete Account by ID",
@@ -466,7 +718,7 @@
         }
       }
     },
-    "/api/v1//transactions": {
+    "/api/v1/transactions/create-transaction": {
       "post": {
         "tags": ["Transactions"],
         "summary": "Create a new transaction",
@@ -500,6 +752,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Create transaction successfully"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
@@ -520,7 +780,9 @@
             }
           }
         }
-      },
+      }
+    },
+    "/api/v1/transactions/all-transaction": {
       "get": {
         "tags": ["Transactions"],
         "summary": "Get all transaction",
@@ -530,9 +792,19 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Transaction"
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Fetched data transaction successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Transaction"
+                    }
                   }
                 }
               }
@@ -541,7 +813,7 @@
         }
       }
     },
-    "/transactions/{id}": {
+    "/api/v1/transactions/transaction-by-id/{id}": {
       "get": {
         "tags": ["Transactions"],
         "summary": "Get transaction by ID",
@@ -562,13 +834,28 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Transaction"
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Transaction fetched successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Transaction"
+                    }
+                  }
                 }
               }
             }
           }
         }
-      },
+      }
+    },
+    "/api/v1/transactions/deletetransaction/{id}": {
       "delete": {
         "tags": ["Transactions"],
         "summary": "Delete transaction by ID",

@@ -1,6 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
-
-const prisma = new PrismaClient();
+const { bank_accounts, bank_account_transactions } = require("../models");
 
 const createTransaction = async (req, res) => {
   let { source_account_id, destination_account_id, amount } = req.body;
@@ -8,7 +6,7 @@ const createTransaction = async (req, res) => {
   destination_account_id = parseInt(destination_account_id);
   amount = parseInt(amount);
 
-  const existingSourceAccount = await prisma.bank_accounts.findUnique({
+  const existingSourceAccount = await bank_accounts.findUnique({
     where: {
       id: source_account_id,
     },
@@ -31,7 +29,7 @@ const createTransaction = async (req, res) => {
       .status(404)
       .json({ error: true, message: "Source Account balance is insufficient" });
 
-  const existingDestinationAccount = await prisma.bank_accounts.findUnique({
+  const existingDestinationAccount = await bank_accounts.findUnique({
     where: {
       id: destination_account_id,
     },
@@ -42,7 +40,7 @@ const createTransaction = async (req, res) => {
       .status(404)
       .json({ error: true, message: "Destination Account Not Found" });
 
-  await prisma.bank_account_transactions
+  await bank_account_transactions
     .create({
       data: {
         amount: amount,
@@ -53,7 +51,7 @@ const createTransaction = async (req, res) => {
       },
     })
     .then(() => {
-      return prisma.bank_accounts.update({
+      return bank_accounts.update({
         where: { id: source_account_id },
         data: {
           balance: {
@@ -63,7 +61,7 @@ const createTransaction = async (req, res) => {
       });
     })
     .then(() => {
-      return prisma.bank_accounts.update({
+      return bank_accounts.update({
         where: { id: destination_account_id },
         data: {
           balance: {
@@ -93,7 +91,7 @@ const createTransaction = async (req, res) => {
 
 const getTransactions = async (req, res) => {
   try {
-    const transactions = await prisma.bank_account_transactions.findMany({
+    const transactions = await bank_account_transactions.findMany({
       include: {
         source_account: true,
         destination_account: true,
@@ -131,7 +129,7 @@ const getTransactionById = async (req, res) => {
   const transactionId = parseInt(req.params.id);
 
   try {
-    const transaction = await prisma.bank_account_transactions.findUnique({
+    const transaction = await bank_account_transactions.findUnique({
       where: {
         id: transactionId,
       },
@@ -171,12 +169,11 @@ const deleteTransaction = async (req, res) => {
   const transactionId = parseInt(req.params.id);
 
   try {
-    const existingTransaction =
-      await prisma.bank_account_transactions.findUnique({
-        where: {
-          id: transactionId,
-        },
-      });
+    const existingTransaction = await bank_account_transactions.findUnique({
+      where: {
+        id: transactionId,
+      },
+    });
 
     if (!existingTransaction) {
       return res
@@ -184,7 +181,7 @@ const deleteTransaction = async (req, res) => {
         .json({ error: true, message: "Transaction not found" });
     }
 
-    await prisma.bank_account_transactions.delete({
+    await bank_account_transactions.delete({
       where: {
         id: transactionId,
       },

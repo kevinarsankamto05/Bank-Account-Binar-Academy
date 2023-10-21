@@ -6,5 +6,5 @@ module.exports = {
   users: prisma.users,
   profiles: prisma.profiles,
   bank_accounts: prisma.bank_accounts,
-  bank_accounts_transaction: prisma.bank_accounts_transaction,
+  bank_account_transactions: prisma.bank_account_transactions,
 };

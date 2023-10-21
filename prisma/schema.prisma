@@ -33,7 +33,7 @@ model bank_accounts{
   bank_account_number String
   balance BigInt
   user_id Int @unique
-  user users @relation(fields: [user_id], references: [id])
+  user users @relation(fields: [user_id], references: [id], onDelete: Cascade)
   source_transactions bank_account_transactions[] @relation("source_account")
   destination_transactions bank_account_transactions[] @relation("destination_account")
 }

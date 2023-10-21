@@ -8,9 +8,9 @@ const {
 
 const router = express.Router();
 
-router.post("/create", createTransaction);
-router.get("/read", getTransactions);
-router.get("/read/:id", getTransactionById);
-router.delete("/delete/:id", deleteTransaction);
+router.post("/create-transaction", createTransaction);
+router.get("/all-transaction", getTransactions);
+router.get("/transaction-by-id/:id", getTransactionById);
+router.delete("/delete-transaction/:id", deleteTransaction);
 
 module.exports = router;
